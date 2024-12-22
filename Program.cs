@@ -3,12 +3,11 @@ using Segmentum.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
-// Add services to the container.
-builder.Services.AddRazorPages();
+builder.Services.AddControllers(); // Add controllers for API-only project
 
 var app = builder.Build();
 
@@ -16,33 +15,32 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    app.UseHsts(); // Enforce HTTPS in production
 }
 
-using (var scope = app.Services.CreateScope())
+if (app.Environment.IsDevelopment())
 {
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    try
+    using (var scope = app.Services.CreateScope())
     {
-        Console.WriteLine("Testing database connection...");
-        context.Database.EnsureCreated(); // Ensures the database is created (useful for local testing)
-        Console.WriteLine("Database connection successful!");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Database connection failed: {ex.Message}");
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        try
+        {
+            Console.WriteLine("Testing database connection...");
+            context.Database.Migrate(); // Applies migrations
+            Console.WriteLine("Database connection successful!");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Database connection failed: {ex.Message}");
+        }
     }
 }
-
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
 app.UseAuthorization();
 
-app.MapRazorPages();
-
+app.MapControllers(); // Map API controllers directly
 app.Run();
