@@ -92,7 +92,7 @@ app.MapGet("/test/delete-segment/{id}", async (int id, AppDbContext context) =>
     var segment = await context.Segments.FindAsync(id);
     if (segment == null)
     {
-        return Results.NotFound($"No segment found with ID {id}."); //testtest
+        return Results.NotFound($"No segment found with ID {id}.");
     }
 
     context.Segments.Remove(segment);
