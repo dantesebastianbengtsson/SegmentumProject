@@ -5,6 +5,7 @@ namespace Segmentum.Data
 {
     public class AppDbContext : DbContext
     {
+
         public DbSet<Habit> Habits { get; set; }
         public DbSet<Segment> Segments { get; set; }
 
