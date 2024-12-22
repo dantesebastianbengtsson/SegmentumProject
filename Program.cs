@@ -70,6 +70,37 @@ app.MapGet("/test/delete-habit/{id}", async (int id, AppDbContext context) =>
     return Results.Ok($"Deleted habit with ID {id}");
 });
 
+// Test create segment
+app.MapGet("/test/create-segment", async (AppDbContext context) =>
+{
+    var segment = new Segment
+    {
+        Name = "Test Segment",
+        StartDate = DateTime.UtcNow,
+        EndDate = DateTime.UtcNow.AddDays(14)
+    };
+
+    context.Segments.Add(segment);
+    await context.SaveChangesAsync();
+
+    return Results.Ok(segment);
+});
+
+// Test delete segment
+app.MapGet("/test/delete-segment/{id}", async (int id, AppDbContext context) =>
+{
+    var segment = await context.Segments.FindAsync(id);
+    if (segment == null)
+    {
+        return Results.NotFound($"No segment found with ID {id}.");
+    }
+
+    context.Segments.Remove(segment);
+    await context.SaveChangesAsync();
+
+    return Results.Ok($"Segment with ID {id} deleted.");
+});
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
