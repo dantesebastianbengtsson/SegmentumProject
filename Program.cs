@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Segmentum.Data;
+using Segmentum.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +36,39 @@ if (app.Environment.IsDevelopment())
         }
     }
 }
+
+
+// Testing create habit
+app.MapGet("/test/create-habit", async (AppDbContext context) =>
+{
+    var habit = new Habit
+    {
+        Name = "Test Habit",
+        Description = "This is a test habit",
+        Status = "Succeeded",
+        SegmentId = 1 // Make sure a valid SegmentId exists
+    };
+
+    context.Habits.Add(habit);
+    await context.SaveChangesAsync();
+
+    return Results.Ok(habit);
+});
+
+// Testing delete habit
+app.MapGet("/test/delete-habit/{id}", async (int id, AppDbContext context) =>
+{
+    var habit = await context.Habits.FindAsync(id);
+    if (habit == null)
+    {
+        return Results.NotFound($"No habit found with ID {id}");
+    }
+
+    context.Habits.Remove(habit);
+    await context.SaveChangesAsync();
+
+    return Results.Ok($"Deleted habit with ID {id}");
+});
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
