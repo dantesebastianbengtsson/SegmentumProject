@@ -20,6 +20,20 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    try
+    {
+        Console.WriteLine("Testing database connection...");
+        context.Database.EnsureCreated(); // Ensures the database is created (useful for local testing)
+        Console.WriteLine("Database connection successful!");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Database connection failed: {ex.Message}");
+    }
+}
 
 
 app.UseHttpsRedirection();
