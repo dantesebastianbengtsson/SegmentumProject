@@ -4,15 +4,26 @@ using Segmentum.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Add services to the container
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Add CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", builder =>
+    {
+        builder.WithOrigins("http://localhost:3000") // Allow requests from React dev server
+               .AllowAnyHeader()
+               .AllowAnyMethod();
+    });
+});
 
 builder.Services.AddControllers(); // Add controllers for API-only project
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
@@ -37,8 +48,18 @@ if (app.Environment.IsDevelopment())
     }
 }
 
+// Apply CORS middleware before routing
+app.UseCors("AllowReactApp");
 
-// Testing create habit
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseRouting();
+app.UseAuthorization();
+
+app.MapControllers(); // Map API controllers directly
+
+// Test endpoints
 app.MapGet("/test/create-habit", async (AppDbContext context) =>
 {
     var habit = new Habit
@@ -55,7 +76,6 @@ app.MapGet("/test/create-habit", async (AppDbContext context) =>
     return Results.Ok(habit);
 });
 
-// Testing delete habit
 app.MapGet("/test/delete-habit/{id}", async (int id, AppDbContext context) =>
 {
     var habit = await context.Habits.FindAsync(id);
@@ -70,7 +90,6 @@ app.MapGet("/test/delete-habit/{id}", async (int id, AppDbContext context) =>
     return Results.Ok($"Deleted habit with ID {id}");
 });
 
-// Test create segment
 app.MapGet("/test/create-segment", async (AppDbContext context) =>
 {
     var segment = new Segment
@@ -86,7 +105,6 @@ app.MapGet("/test/create-segment", async (AppDbContext context) =>
     return Results.Ok(segment);
 });
 
-// Test delete segment
 app.MapGet("/test/delete-segment/{id}", async (int id, AppDbContext context) =>
 {
     var segment = await context.Segments.FindAsync(id);
@@ -101,11 +119,4 @@ app.MapGet("/test/delete-segment/{id}", async (int id, AppDbContext context) =>
     return Results.Ok($"Segment with ID {id} deleted.");
 });
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-
-app.UseRouting();
-app.UseAuthorization();
-
-app.MapControllers(); // Map API controllers directly
 app.Run();
